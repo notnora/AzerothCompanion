@@ -45,7 +45,7 @@ Status: fullført
 
 ## Fase 1: MVP-addon shell
 
-Status: pågår — UI, spillerstatus, resize, reload, `/ac` og lagring av posisjon/størrelse er testet i WoW; soneoppdatering og teksttilpasning gjenstår
+Status: fullført — UI, spillerstatus, resize, wrapping, soneoppdatering, reload, `/ac` og lagring er testet i WoW
 
 ### Mål
 - Bygge et fungerende addon-vindu i WoW.
@@ -78,6 +78,7 @@ Status: pågår — UI, spillerstatus, resize, reload, `/ac` og lagring av posis
 - [x] Bekrefte at vindusstørrelsen overlever `/reload`
 - [x] Bekrefte at vindusposisjonen overlever reload og relog
 - [x] Bekrefte at vindusstørrelsen overlever relog
+- [x] Bekrefte at spillerstatus oppdateres etter sonebytte, også ved hearthstone
 - [x] Ingen Lua-feil observert i siste in-game-test
 - [x] Bekrefte at `/reload` og `/ac` fungerer
 
@@ -92,13 +93,15 @@ Status: pågår — UI, spillerstatus, resize, reload, `/ac` og lagring av posis
 - `BackdropTemplate`-rettelsen er bekreftet indirekte i klienten ved at vinduet nå vises og kan brukes.
 - Brukeren har bekreftet at vinduet vises, kan åpnes/lukkes og flyttes, at begge knappene viser ulike eksempeldata, og at resize endrer størrelsen.
 - Spillerstatus inkludert fraksjon vises, og ingen feillogg ble observert i siste test.
-- Gjenstår: teste soneoppdatering og teksttilpasning etter resize.
+- Tekstwrapping er bekreftet i WoW: hele felt, som `Sone: Stranglethorn Vale`, flyttes samlet mellom linjer.
+- Soneoppdatering er bekreftet i WoW etter hearthstone til Orgrimmar.
+- Fase 1 er verifisert i klienten; Fase 2 er neste steg.
 
 ---
 
 ## Fase 2: Fiktive quest-data og anbefalinger
 
-Status: planlagt — MVP-en har foreløpig bare statiske eksempelanbefalinger
+Status: pågår — strukturert fiktivt quest-fixture og filtreringsmodul er implementert; in-game-verifisering gjenstår
 
 ### Mål
 - Lære grunnleggende data-modellering og rekommendasjonslogikk.
@@ -123,14 +126,15 @@ Status: planlagt — MVP-en har foreløpig bare statiske eksempelanbefalinger
 - Enkel rangering av forslag
 
 ### Sjekkliste
-- [ ] Definere datastruktur for quest
-- [ ] Lage eksempelquester i fixture-data
-- [ ] Filtrere ut fullførte eller ugyldige quests
+- [x] Definere datastruktur med nivå, fraksjon, status, forutsetninger, story, hub og quest-item-dropstatus
+- [x] Lage eksplisitt fiktive eksempelquester i en egen fixture-fil
+- [x] Filtrere fixtures etter nivå, fraksjon, tilgjengelighet, forutsetninger og modus/sone
+- [x] Vise om fixture-item kan droppe før aksept, krever aksept eller har ukjent status
 - [ ] Prioritere quests som hører til samme historie eller hub
 - [x] Vise enkle, menneskeleselige begrunnelser i eksempelanbefalingene
 - [x] Markere anbefalingene som eksempeldata i UI-et
 
-De nåværende anbefalingene er hardkodede demonstrasjonsforslag. De er ikke en strukturert quest-fixture med nivå, status, historie-ID eller hub, og de filtreres ikke mot karakteren eller questloggen.
+Fixture-dataene er oppdiktede og ligger adskilt fra anbefalingslogikken. Filteret bruker karakterens nivå, fraksjon og sone, men queststatus og fullførte forutsetninger er ikke koblet til den virkelige questloggen. UI-et opplyser om denne begrensningen; item-dropverdiene er også bare eksempler.
 
 ### Akseptkriterier
 - Spieler får konkrete forslag i UI-et.
@@ -274,6 +278,7 @@ Status: senere
 
 ## Neste steg
 
-1. Fullføre manuell Fase 1-test i WoW, inkludert lukkeknapp, `/ac`, spillerstatus og lagring av vindusposisjon.
-2. Legge til visning av fraksjon og rette eventuelle klientfeil.
-3. Starte Fase 2 med et tydelig merket, strukturert quest-fixture og små testbare filtreringsregler.
+1. Teste begge anbefalingsmodusene i WoW og kontrollere nivå-/fraksjonsfilter, at «her» bare viser aktuell sone, «gå videre» utelukker den, og item-statusmeldinger.
+2. Teste scrollområdet ved liten vindusstørrelse og koordinatvisningen over minimapet, inkludert oppdatering under bevegelse og manglende posisjon i instanser.
+3. Utvide fixture-filtrene med eksplisitt testbar questprogresjon når en verifisert Classic API-adapter er valgt.
+4. Vurdere faktiske datakilder først etter at fixture-modellen og filtreringsreglene er validert.

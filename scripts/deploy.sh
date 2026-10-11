@@ -33,7 +33,7 @@ if [[ ! -d "$ADDONS_DIR" ]]; then
     exit 1
 fi
 
-for source_file in AzerothCompanion.toc AzerothCompanionConstants.lua AzerothCompanion.lua; do
+for source_file in AzerothCompanion.toc AzerothCompanionConstants.lua AzerothCompanionQuestFixtures.lua AzerothCompanionRecommendations.lua AzerothCompanion.lua; do
     if [[ ! -f "${PROJECT_ROOT}/${source_file}" ]]; then
         printf 'Mangler kildefil: %s\n' "${PROJECT_ROOT}/${source_file}" >&2
         exit 1
@@ -45,6 +45,8 @@ mkdir -p "$DESTINATION"
 cp -f \
     "${PROJECT_ROOT}/AzerothCompanion.toc" \
     "${PROJECT_ROOT}/AzerothCompanionConstants.lua" \
+    "${PROJECT_ROOT}/AzerothCompanionQuestFixtures.lua" \
+    "${PROJECT_ROOT}/AzerothCompanionRecommendations.lua" \
     "${PROJECT_ROOT}/AzerothCompanion.lua" \
     "$DESTINATION/"
 

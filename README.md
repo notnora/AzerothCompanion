@@ -25,11 +25,16 @@ Se roadmap-dokumentet her:
 ## Nåværende status
 
 - Fase 0 er fullført.
-- Fase 1 pågår: addon-shell, UI, eksempelanbefalinger og lokal deploy er implementert.
+- Fase 1 er fullført og testet i WoW: addon-shell, UI, spillerstatus, eksempelknapper, resize og lokal deploy.
+- Fase 2 er påbegynt: strukturerte fiktive quest-fixtures og en ren filtreringsmodul er lagt til.
 - I WoW er vinduet bekreftet synlig, åpne/lukke-, flytt- og resizebart; spillerstatus med fraksjon vises, resize-grensene fungerer, størrelsen beholdes etter `/reload`, `/ac` virker, og ingen feillogg ble observert.
 - Vindusposisjon og -størrelse er bekreftet å overleve reload og relog.
-- Neste steg er å bekrefte soneoppdatering og teksttilpasning ved resize.
-- Fase 2 begynner etter at grunnleggende klienttesting er bestått; anbefalingene er foreløpig statiske eksempeldata, ikke ekte questdata.
+- Tekstwrappingen er testet: spillerfelt flyttes samlet mellom linjer.
+- Sonefeltet oppdateres etter hearthstone; vindusstørrelse/-posisjon overlever reload og relog.
+- Fixture-forslag filtreres etter nivå, fraksjon, fixture-status og forutsetninger, og «gå videre» utelukker gjeldende sone.
+- Questlogg og fullføringsstatus er ikke koblet til; fixture- og quest-item-dropverdier er demonstrasjonsdata, ikke spillfakta.
+- Anbefalingsteksten har nå et scrollområde. Koordinater hentes med Classic `C_Map` og er ment vist over minimapets sonetekst.
+- Neste steg er å teste fixture-filtrene, scrollingen og koordinatvisningen i WoW.
 
 ## Lokal deploy
 
@@ -45,7 +50,7 @@ Skriptet leser først `.localenvs` i prosjektroten hvis filen finnes. Filen er i
 WOW_ADDONS_DIR="/sti/til/World of Warcraft/_classic_era_/Interface/AddOns"
 ```
 
-Hvis `.localenvs` mangler eller ikke angir `WOW_ADDONS_DIR`, prøver skriptet standard installasjonsmapper på macOS. Variabler i filen lastes som shell-konfigurasjon; legg bare inn egne, betrodde variabeldefinisjoner. Deploy kopierer `AzerothCompanion.toc`, `AzerothCompanionConstants.lua` og `AzerothCompanion.lua`, og endrer ikke SavedVariables.
+Hvis `.localenvs` mangler eller ikke angir `WOW_ADDONS_DIR`, prøver skriptet standard installasjonsmapper på macOS. Variabler i filen lastes som shell-konfigurasjon; legg bare inn egne, betrodde variabeldefinisjoner. Deploy kopierer `.toc`-filen, konstantene, quest-fixture, anbefalingsmodul og hovedfil. Det endrer ikke SavedVariables.
 
 ## Testing
 
@@ -56,7 +61,7 @@ Se testdokumentasjonen her:
 ## Prosjektfaser
 
 - [x] Fase 0: Oppsett og prosjektforståelse
-- [ ] Fase 1: MVP-addon shell
+- [x] Fase 1: MVP-addon shell
 - [ ] Fase 2: Fiktive quest-data og anbefalinger
 - [ ] Fase 3: Reise- og eventyrsammenheng
 - [ ] Fase 4: Quest-repository og ekte data

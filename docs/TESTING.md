@@ -39,8 +39,11 @@ Vi bruker WoW sine egne verktøy til å kontrollere om addon-en feiler eller log
 - Spillerstatus inkludert fraksjon vises; brukeren rapporterer ingen feillogg i siste test.
 - Resize fungerer innenfor min-/maksgrensene, og størrelsen beholdes etter `/reload`.
 - `/reload` og `/ac` fungerer, og ingen Lua-feil ble observert i siste in-game-test.
-- Vindusposisjon og -størrelse overlever både reload og relog. Teksttilpasning etter resize og soneoppdatering gjenstår å kontrollere.
-- Anbefalingene er statiske eksempeldata. De sjekker ikke ekte quest-tilgjengelighet, nivå eller om spilleren allerede er i foreslått sone.
+- Vindusposisjon og -størrelse overlever både reload og relog. Tekstwrapping av hele spillerfelt og soneoppdatering etter hearthstone er bekreftet.
+- Anbefalingene bruker strukturerte, fiktive fixtures og filtrerer på nivå, fraksjon, fixture-status og forutsetninger. «Gå videre» utelukker gjeldende sone.
+- Ekte questlogg og fullføringsstatus er ikke koblet til. Fixture-status og item-dropstatus er demonstrasjonsdata, ikke spillfakta.
+- Anbefalingsområdet har nå scrollframe, mouse-wheel-støtte og dynamisk teksthøyde; visuell scrolling er ikke bekreftet i klienten ennå.
+- Koordinatvisning bruker Classic `C_Map`-API og bevegelseshendelser, og er ankret over soneteksten hvis den finnes; faktisk API-resultat og plassering over minimapet må bekreftes i klienten. I instanser kan koordinater være utilgjengelige.
 
 ---
 
@@ -101,6 +104,7 @@ Sjekke at UI-et faktisk er synlig og kan brukes.
 3. Prøv å flytte vinduet.
 4. Klikk X for å skjule vinduet, og bruk `/ac` for å åpne det igjen.
 5. Dra resize-håndtaket nederst til høyre for å endre størrelse.
+6. Gjør vinduet lite, velg en anbefalingsmodus med flere linjer, og scroll med musehjul og scrollbar.
 
 #### Verifisering
 - Vinduet er synlig.
@@ -110,8 +114,25 @@ Sjekke at UI-et faktisk er synlig og kan brukes.
 - Resize-håndtaket endrer størrelsen uten at vinduet flyttes.
 - Vinduet stopper ved definert minste- og største størrelse.
 - Teksten holder seg innenfor vinduet når det endres størrelse.
+- Anbefalingsteksten kan scrolles uten å tegnes utenfor vinduet.
 
-Status: Bekreftet i WoW at vinduet vises, kan åpnes/lukkes, flyttes og endre størrelse innenfor min-/maksgrensene. `/ac` åpner det igjen etter lukking. Teksttilpasning etter resize er ikke bekreftet særskilt.
+Status: Bekreftet i WoW at vinduet vises, kan åpnes/lukkes, flyttes og endre størrelse innenfor min-/maksgrensene. `/ac` åpner det igjen etter lukking. Spillerfelt som `Sone: Stranglethorn Vale` flyttes samlet når teksten brytes.
+
+### Test 11: Koordinater over minimapet
+
+#### Formål
+Kontrollere at spillerens posisjon vises over minimap-soneteksten og oppdateres mens karakteren beveger seg.
+
+#### Steg
+1. Logg inn i et utendørs område.
+2. Kontroller at en linje på formen `Koord: 12.3, 45.6` står over soneetiketten på minimapet.
+3. Gå eller løp et lite stykke og kontroller at tallene endrer seg.
+4. Gå inn i en instans eller et område uten kartposisjon og kontroller at addon-en viser `Koord: --, --` uten Lua-feil.
+
+#### Verifisering
+- Koordinatlinjen ligger over sonenavnet/minimapet uten å dekke dem.
+- Verdiene endres under bevegelse og slutter å oppdatere kontinuerlig når karakteren står stille.
+- Manglende kartposisjon håndteres uten Lua-feil.
 
 ### Test 3: Spillerstatus oppdateres riktig
 
@@ -127,7 +148,7 @@ Verifisere at vi leser riktig spillerstatus.
 - Informasjonen stemmer overens med faktisk karakterstatus.
 - Vinduet oppdateres ved relevante events.
 
-Status: Spillerinformasjon inkludert fraksjon vises i WoW. Korrekt oppdatering etter sonebytte er ikke bekreftet.
+Status: Spillerinformasjon inkludert fraksjon vises i WoW, og sonen oppdateres etter hearthstone til Orgrimmar.
 
 ### Test 4: To hovedhandlinger vises
 
@@ -219,6 +240,24 @@ Sikre at vi klart skiller mellom ekte spilldata og demo-/fixture-data.
 #### Verifisering
 - Brukeren forstår at det er testdata, ikke en full questdatabase.
 
+### Test 10: Fixture-filtrering og quest-item-status
+
+#### Formål
+Kontrollere fixture-filteret og vise begrensningene tydelig.
+
+#### Steg
+1. Kjør `/reload` og kontroller at vinduet viser at forslagene er fiktive.
+2. Trykk «Hva bør jeg gjøre her?» og kontroller at alle forslagene er fra gjeldende sone.
+3. Trykk «Jeg er klar til å gå videre!» og kontroller at gjeldende sone ikke foreslås.
+4. Sammenlign story, hub og begrunnelser; kontroller også at forslagene passer nivå og fraksjon.
+5. Se etter item-meldinger for før aksept, etter aksept og ukjent status.
+6. Kontroller at fullførte, låste og ukjente fixtureposter ikke vises.
+
+#### Verifisering
+- Forslagene bruker strukturert fixture-data, ikke den virkelige questloggen.
+- Quest-item-teksten skiller mellom før aksept, etter aksept og ukjent.
+- Ingen fixture eller dropstatus framstilles som verifiserte spilldata.
+
 ---
 
 ## Feilsøking og nøkkelverifisering
@@ -255,10 +294,11 @@ Sjekk:
 - [x] Ingen Lua-feil observert i siste in-game-test
 - [x] Vinduet vises, kan lukkes og flyttes (bekreftet i WoW)
 - [x] Spillerstatus inkludert fraksjon vises (bekreftet i WoW)
+- [x] Sonefeltet oppdateres etter sonebytte/hearthstone
 - [x] To handlinger vises og gir ulike eksempeldata (bekreftet i WoW)
 - [x] Resize-håndtaket endrer vindusstørrelsen (bekreftet i WoW)
 - [x] Resize fungerer innenfor min-/maksgrensene
-- [ ] Teksttilpasning etter resize fungerer som forventet
+- [x] Hele spillerfelt holdes samlet når statuslinjen brytes ved resize
 - [x] `/ac` åpner et skjult vindu
 - [x] Vindusstørrelsen beholdes etter `/reload`
 - [x] Vindusposisjon og -størrelse overlever reload og relog
@@ -266,10 +306,12 @@ Sjekk:
 - [x] `/console scriptErrors 1` viser ingen kritiske feil
 
 ### Fase 2: Fiksturer og anbefalinger
-- [ ] Forslag vises
-- [ ] Forslag har begrunnelser
-- [ ] Fiktive data er tydelig markert
-- [ ] Filter for fullførte/ugyldige quests fungerer
+- [ ] Begge moduser viser fixtureforslag med begrunnelser
+- [ ] Fiktive data og fravær av ekte questlogg er tydelig markert
+- [ ] Nivå-, fraksjons-, status- og forutsetningsfilter fungerer
+- [ ] «Hva bør jeg gjøre her?» viser bare aktuell sone
+- [ ] «Gå videre» utelukker gjeldende sone
+- [ ] Quest-item-status vises som før aksept, etter aksept eller ukjent
 
 ### Fase 3: Reise-/storylogikk
 - [ ] Går videre-modus er forskjellig fra hva-bør-jeg-gjøre-her

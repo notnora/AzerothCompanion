@@ -6,4 +6,6 @@
 ## SavedVariables: AzerothCompanionDB
 
 AzerothCompanionConstants.lua
+AzerothCompanionQuestFixtures.lua
+AzerothCompanionRecommendations.lua
 AzerothCompanion.lua

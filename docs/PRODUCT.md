@@ -23,6 +23,8 @@ Kvalitativ prioritet: (1) sammenhengende historier, (2) minimal meningsløs tilb
 ## Datakrav
 Quest-ID, påkrevd/anbefalt nivå, fraksjon, forutsetninger, fullføringsstatus, kjedekoblinger, oppstartsmål-/innleveringslokasjoner, historiegruppering, hub-gruppering og XP der det er pålitelig. Trenerdata trenger klassen/profesjonstilpasning, tilbudt trening, forutsetninger og lokasjon. Ukjente data må representeres eksplisitt; aldri gjett.
 
+For quest-items skal data kunne si om itemet kan droppe før questen aksepteres, først etter aksept, eller om dette er ukjent. Ikke oppgi drop-rate eller behandle fixtureverdier som spillfakta uten en verifisert kilde.
+
 ## Milepæler
 1. Addon-shell: flyttbart vindu, spillerstatus, to handlinger, eksempelanbefalinger, SavedVariables.
 2. Integrasjon av faktisk quest-repository og filtrering av tilgjengelighet.
