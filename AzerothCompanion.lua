@@ -3,6 +3,7 @@ local constants = namespace.Constants
 local UI = constants.UI
 local questFixtures = namespace.QuestFixtures
 local Recommendations = namespace.Recommendations
+local QuestieDBAdapter = namespace.QuestieDBAdapter
 local FRAME_TYPES = constants.FRAME_TYPES
 local FRAME_TEMPLATES = constants.FRAME_TEMPLATES
 local UI_TEXTURES = constants.UI_TEXTURES
@@ -651,6 +652,84 @@ local function registerSlashCommands()
     SLASH_AZEROTHCOMPANION1 = UI.slashCommand
     SlashCmdList["AZEROTHCOMPANION"] = function()
         toggleFrame()
+    end
+
+    SLASH_AZEROTHCOMPANIONDB1 = UI.questieDbSlashCommand
+    SlashCmdList["AZEROTHCOMPANIONDB"] = function(message)
+        local chatFrame = DEFAULT_CHAT_FRAME
+        chatFrame:AddMessage(UI.questieDbOutputPrefix .. UI.questieDbProbeHelp)
+
+        local rawMessage = message or ""
+        local cleanedMessage = rawMessage:match("^%s*(.-)%s*$") or rawMessage
+        local questID = tonumber(cleanedMessage)
+
+        if not questID or questID < 1 or questID % 1 ~= 0 then
+            return
+        end
+
+        local quest, reason, detail = QuestieDBAdapter.getQuest(questID)
+        if not quest then
+            if reason == "not_installed" then
+                chatFrame:AddMessage(UI.questieDbOutputPrefix .. UI.questieDbNotInstalled)
+            elseif reason == "contract_mismatch" then
+                chatFrame:AddMessage(UI.questieDbOutputPrefix .. string.format(UI.questieDbContractMismatch, detail or UI.questieDbUnknownValue))
+            elseif reason == "not_found" then
+                chatFrame:AddMessage(UI.questieDbOutputPrefix .. string.format(UI.questieDbQuestNotFound, questID))
+            elseif reason == "invalid_id" then
+                chatFrame:AddMessage(UI.questieDbOutputPrefix .. UI.questieDbInvalidQuestId)
+            elseif reason == "api_unavailable" then
+                chatFrame:AddMessage(UI.questieDbOutputPrefix .. UI.questieDbApiUnavailable)
+            else
+                chatFrame:AddMessage(UI.questieDbOutputPrefix .. string.format(UI.questieDbReadFailed, questID, detail or UI.questieDbUnknownValue))
+            end
+            return
+        end
+
+        local function formatField(value)
+            if value == nil then
+                return UI.questieDbUnknownValue
+            end
+            return tostring(value)
+        end
+
+        local function formatQuestIDs(questIDs)
+            if type(questIDs) ~= "table" or #questIDs == 0 then
+                return UI.questieDbNoIDs
+            end
+
+            local displayedIDs = {}
+            for index = 1, math.min(#questIDs, UI.questieDbMaxDisplayedPrerequisites) do
+                displayedIDs[index] = tostring(questIDs[index])
+            end
+            return table.concat(displayedIDs, ", ")
+        end
+
+        local objectiveLineCount = type(quest.objectives) == "table" and #quest.objectives or 0
+        chatFrame:AddMessage(UI.questieDbOutputPrefix .. UI.questieDbAvailable)
+        chatFrame:AddMessage(UI.questieDbOutputPrefix .. string.format(UI.questieDbQuestSummaryFormat, quest.id, quest.title))
+        chatFrame:AddMessage(UI.questieDbOutputPrefix .. string.format(
+            UI.questieDbQuestFieldsFormat,
+            formatField(quest.minLevel),
+            formatField(quest.questLevel),
+            formatField(quest.zoneOrSort)
+        ))
+        chatFrame:AddMessage(UI.questieDbOutputPrefix .. string.format(
+            UI.questieDbRestrictionFormat,
+            formatField(quest.requiredRaces),
+            formatField(quest.requiredClasses)
+        ))
+        chatFrame:AddMessage(UI.questieDbOutputPrefix .. string.format(
+            UI.questieDbChainFormat,
+            formatQuestIDs(quest.preQuestSingle),
+            formatQuestIDs(quest.preQuestGroup),
+            formatField(quest.nextQuestInChain)
+        ))
+        chatFrame:AddMessage(UI.questieDbOutputPrefix .. string.format(
+            UI.questieDbObjectivesFormat,
+            objectiveLineCount,
+            formatField(quest.sourceItemId)
+        ))
+        chatFrame:AddMessage(UI.questieDbOutputPrefix .. UI.questieDbDataSourceNote)
     end
 end
 

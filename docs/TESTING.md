@@ -32,8 +32,8 @@ Vi bruker WoW sine egne verktøy til å kontrollere om addon-en feiler eller log
 
 ## Status for gjeldende build
 
-- Lokal deploy er kjørt mot Classic Era AddOns-mappen. `.toc`-filen og begge Lua-filene ble sammenlignet med de deployede kopiene.
-- Deploy-skriptet passerer `bash -n`, og editorens Lua-diagnostikk rapporterer ingen feil i hovedfilen eller konstantfilen.
+- Lokal deploy er kjørt mot Classic Era AddOns-mappen. `.toc`-filen og alle fem Lua-filene ble sammenlignet med de deployede kopiene.
+- Deploy-skriptet passerer `bash -n`, og editorens Lua-diagnostikk rapporterer ingen feil i hovedfilen, konstantfilen eller QuestieDB-adapteren.
 - Lokal kjøring med `lua`/`luac` er ikke tilgjengelig i utviklingsmiljøet.
 - Brukeren har bekreftet i WoW at vinduet vises, kan åpnes/lukkes og flyttes, og at knappene viser ulike eksempeldata.
 - Spillerstatus inkludert fraksjon vises; brukeren rapporterer ingen feillogg i siste test.
@@ -42,6 +42,7 @@ Vi bruker WoW sine egne verktøy til å kontrollere om addon-en feiler eller log
 - Vindusposisjon og -størrelse overlever både reload og relog. Tekstwrapping av hele spillerfelt og soneoppdatering etter hearthstone er bekreftet.
 - Anbefalingene bruker strukturerte, fiktive fixtures og filtrerer på nivå, fraksjon, fixture-status og forutsetninger. «Gå videre» utelukker gjeldende sone.
 - Ekte questlogg og fullføringsstatus er ikke koblet til. Fixture-status og item-dropstatus er demonstrasjonsdata, ikke spillfakta.
+- `/acdb <questID>` er en read-only probe mot QuestieDB hvis den separate addonen finnes og oppfyller kontrakten. Den mater ikke anbefalingene; QuestieDB distribueres ikke med Azeroth Companion.
 - Anbefalingsområdet har nå scrollframe, mouse-wheel-støtte og dynamisk teksthøyde; visuell scrolling er ikke bekreftet i klienten ennå.
 - Koordinatvisning bruker Classic `C_Map`-API og bevegelseshendelser, og er ankret over soneteksten hvis den finnes; faktisk API-resultat og plassering over minimapet må bekreftes i klienten. I instanser kan koordinater være utilgjengelige.
 
@@ -261,6 +262,24 @@ Kontrollere fixture-filteret og vise begrensningene tydelig.
 - Questline-plassering vises bare når både stegnummer og totalt antall steg finnes og er gyldige.
 - Hvert questforslag er visuelt separat, parchment-bakgrunnen dekker kortet, og scrolling viser hele kortinnholdet.
 - Ingen fixture eller dropstatus framstilles som verifiserte spilldata.
+
+### Test 11: Valgfri QuestieDB-probe
+
+#### Formål
+Kontrollere at den valgfrie QuestieDB-adapteren feiler forståelig når provider mangler, og bare leser data når den er tilgjengelig.
+
+#### Steg
+1. Kjør `/reload` med `/console scriptErrors 1` aktivert.
+2. Kjør `/acdb` uten quest-ID og kontroller at hjelpeteksten vises.
+3. Kjør `/acdb abc` eller `/acdb 0` og kontroller at ugyldig ID håndteres uten Lua-feil.
+4. Hvis QuestieDB ikke er installert, kjør `/acdb 1` og kontroller at meldingen sier at provider mangler. Hvis den er installert, bruk en quest-ID du selv kan bekrefte finnes i QuestieDB, og kontroller at oppslaget viser navn, nivå-/sonefelt, forutsetninger og datakilde.
+5. Kontroller at forslagene i Azeroth Companion fortsatt er fixture-forslag og ikke endres av probe-kommandoen.
+
+#### Verifisering
+- Manglende eller inkompatibel QuestieDB hindrer ikke Azeroth Companion i å lastes.
+- Ugyldig ID, manglende provider og ukjent quest gir forklarende chatmelding uten Lua-feil.
+- Et vellykket oppslag merkes med QuestieDB som datakilde; verdiene behandles ikke som koblet anbefalingsdata.
+- Proben utfører kun lesing. QuestieDB er en separat, valgfri addon og distribueres ikke av dette prosjektet.
 
 ---
 

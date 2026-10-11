@@ -136,6 +136,8 @@ Status: pågår — strukturert fiktivt quest-fixture og filtreringsmodul er imp
 
 Fixture-dataene er oppdiktede og ligger adskilt fra anbefalingslogikken. Filteret bruker karakterens nivå, fraksjon og sone, men queststatus og fullførte forutsetninger er ikke koblet til den virkelige questloggen. UI-et opplyser om denne begrensningen; item-dropverdiene er også bare eksempler.
 
+En valgfri, read-only QuestieDB-probe (`/acdb <questID>`) er implementert for lokal API-verifisering. Den er ikke koblet til anbefalingene, og QuestieDB distribueres ikke med prosjektet. Se Test 11 i [docs/TESTING.md](docs/TESTING.md) før in-game-verifisering.
+
 ### Akseptkriterier
 - Spieler får konkrete forslag i UI-et.
 - Forslagene kommer med forklaring, ikke bare uforståelige verdier.

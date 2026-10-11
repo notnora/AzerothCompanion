@@ -3,9 +3,11 @@
 ## Notes: Story-first quest guidance for Season of Discovery.
 ## Author: Azeroth Companion Project
 ## Version: 0.1.0
+## OptionalDeps: QuestieDB
 ## SavedVariables: AzerothCompanionDB
 
 AzerothCompanionConstants.lua
+AzerothCompanionQuestieDBAdapter.lua
 AzerothCompanionQuestFixtures.lua
 AzerothCompanionRecommendations.lua
 AzerothCompanion.lua

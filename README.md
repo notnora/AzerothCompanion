@@ -27,14 +27,16 @@ Se roadmap-dokumentet her:
 - Fase 0 er fullført.
 - Fase 1 er fullført og testet i WoW: addon-shell, UI, spillerstatus, eksempelknapper, resize og lokal deploy.
 - Fase 2 er påbegynt: strukturerte fiktive quest-fixtures og en ren filtreringsmodul er lagt til.
+- `/acdb <questID>` kan brukes til å inspisere QuestieDB lokalt hvis den valgfrie provider-addonen er installert. Dette er en read-only probe, ikke en dataintegrasjon i anbefalingene.
 - I WoW er vinduet bekreftet synlig, åpne/lukke-, flytt- og resizebart; spillerstatus med fraksjon vises, resize-grensene fungerer, størrelsen beholdes etter `/reload`, `/ac` virker, og ingen feillogg ble observert.
 - Vindusposisjon og -størrelse er bekreftet å overleve reload og relog.
 - Tekstwrappingen er testet: spillerfelt flyttes samlet mellom linjer.
 - Sonefeltet oppdateres etter hearthstone; vindusstørrelse/-posisjon overlever reload og relog.
 - Fixture-forslag filtreres etter nivå, fraksjon, fixture-status og forutsetninger, og «gå videre» utelukker gjeldende sone.
 - Questlogg og fullføringsstatus er ikke koblet til; fixture- og quest-item-dropverdier er demonstrasjonsdata, ikke spillfakta.
+- QuestieDB er en separat, valgfri avhengighet og distribueres ikke med Azeroth Companion.
 - Anbefalingsteksten har nå et scrollområde. Koordinater hentes med Classic `C_Map` og er ment vist over minimapets sonetekst.
-- Neste steg er å teste fixture-filtrene, scrollingen og koordinatvisningen i WoW.
+- Neste steg er å teste fixture-filtrene, scrollingen, koordinatvisningen og `/acdb`-proben i WoW.
 
 ## Lokal deploy
 
