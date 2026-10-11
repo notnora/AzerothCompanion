@@ -26,8 +26,9 @@ Se roadmap-dokumentet her:
 
 - Fase 0 er fullført.
 - Fase 1 pågår: addon-shell, UI, eksempelanbefalinger og lokal deploy er implementert.
-- I WoW er vinduet bekreftet synlig, åpne/lukke- og flyttbart; begge knappene viser ulike eksempeldata.
-- Neste steg er å bekrefte `/reload`, `scriptErrors`, `/ac`, at fraksjonen vises riktig, resize-håndtakets grenser, og at vindusposisjon og størrelse overlever reload/relog.
+- I WoW er vinduet bekreftet synlig, åpne/lukke-, flytt- og resizebart; spillerstatus med fraksjon vises, resize-grensene fungerer, størrelsen beholdes etter `/reload`, `/ac` virker, og ingen feillogg ble observert.
+- Vindusposisjon og -størrelse er bekreftet å overleve reload og relog.
+- Neste steg er å bekrefte soneoppdatering og teksttilpasning ved resize.
 - Fase 2 begynner etter at grunnleggende klienttesting er bestått; anbefalingene er foreløpig statiske eksempeldata, ikke ekte questdata.
 
 ## Lokal deploy

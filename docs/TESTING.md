@@ -36,8 +36,10 @@ Vi bruker WoW sine egne verktøy til å kontrollere om addon-en feiler eller log
 - Deploy-skriptet passerer `bash -n`, og editorens Lua-diagnostikk rapporterer ingen feil i hovedfilen eller konstantfilen.
 - Lokal kjøring med `lua`/`luac` er ikke tilgjengelig i utviklingsmiljøet.
 - Brukeren har bekreftet i WoW at vinduet vises, kan åpnes/lukkes og flyttes, og at knappene viser ulike eksempeldata.
-- `BackdropTemplate`-rettelsen er dermed bekreftet for innlasting og visning av vinduet. Fraksjon er nå lagt til i spillerstatus, men verdien er ikke bekreftet i klienten ennå. `/reload`, `/console scriptErrors 1`, `/ac`, spillerstatus og SavedVariables er heller ikke rapportert testet.
-- Resize-håndtak med grenser, responsiv tekstbredde og lagring av størrelse er implementert og deployet; faktisk resizing og persistering må bekreftes i klienten.
+- Spillerstatus inkludert fraksjon vises; brukeren rapporterer ingen feillogg i siste test.
+- Resize fungerer innenfor min-/maksgrensene, og størrelsen beholdes etter `/reload`.
+- `/reload` og `/ac` fungerer, og ingen Lua-feil ble observert i siste in-game-test.
+- Vindusposisjon og -størrelse overlever både reload og relog. Teksttilpasning etter resize og soneoppdatering gjenstår å kontrollere.
 - Anbefalingene er statiske eksempeldata. De sjekker ikke ekte quest-tilgjengelighet, nivå eller om spilleren allerede er i foreslått sone.
 
 ---
@@ -109,7 +111,7 @@ Sjekke at UI-et faktisk er synlig og kan brukes.
 - Vinduet stopper ved definert minste- og største størrelse.
 - Teksten holder seg innenfor vinduet når det endres størrelse.
 
-Status: Delvis bekreftet i WoW: vinduet vises, kan åpnes/lukkes og flyttes. Åpning via `/ac` er ikke bekreftet særskilt.
+Status: Bekreftet i WoW at vinduet vises, kan åpnes/lukkes, flyttes og endre størrelse innenfor min-/maksgrensene. `/ac` åpner det igjen etter lukking. Teksttilpasning etter resize er ikke bekreftet særskilt.
 
 ### Test 3: Spillerstatus oppdateres riktig
 
@@ -124,6 +126,8 @@ Verifisere at vi leser riktig spillerstatus.
 #### Verifisering
 - Informasjonen stemmer overens med faktisk karakterstatus.
 - Vinduet oppdateres ved relevante events.
+
+Status: Spillerinformasjon inkludert fraksjon vises i WoW. Korrekt oppdatering etter sonebytte er ikke bekreftet.
 
 ### Test 4: To hovedhandlinger vises
 
@@ -152,8 +156,8 @@ Sjekke at addonet håndterer lagring og oppstart korrekt.
 3. Sjekk om vindu og innstillinger fortsatt er aktive.
 
 #### Verifisering
-- Addonet fungerer fortsatt etter reload.
-- Innstillinger eller vindusposisjon beholdes der dette er implementert.
+- `/reload` fungerer, og vindusstørrelsen beholdes. Bekreftet i WoW.
+- Vindusposisjon og -størrelse overlever både reload og relog. Bekreftet i WoW.
 
 ---
 
@@ -248,15 +252,18 @@ Sjekk:
 ## Testchecklist for hver fase
 
 ### Fase 1: MVP
-- [ ] Addonet laster inn uten feil, inkludert lasting av konstantmodulen før hovedfilen
+- [x] Ingen Lua-feil observert i siste in-game-test
 - [x] Vinduet vises, kan lukkes og flyttes (bekreftet i WoW)
-- [ ] Spillerstatus vises korrekt, inkludert fraksjon
+- [x] Spillerstatus inkludert fraksjon vises (bekreftet i WoW)
 - [x] To handlinger vises og gir ulike eksempeldata (bekreftet i WoW)
-- [ ] Resize-håndtaket endrer størrelse innenfor grensene, og innholdet tilpasser seg
-- [ ] `/ac` åpner et skjult vindu
-- [ ] Vindusposisjon og størrelse overlever reload og relog
-- [ ] `/reload` fungerer
-- [ ] `/console scriptErrors 1` viser ingen kritiske feil
+- [x] Resize-håndtaket endrer vindusstørrelsen (bekreftet i WoW)
+- [x] Resize fungerer innenfor min-/maksgrensene
+- [ ] Teksttilpasning etter resize fungerer som forventet
+- [x] `/ac` åpner et skjult vindu
+- [x] Vindusstørrelsen beholdes etter `/reload`
+- [x] Vindusposisjon og -størrelse overlever reload og relog
+- [x] `/reload` fungerer
+- [x] `/console scriptErrors 1` viser ingen kritiske feil
 
 ### Fase 2: Fiksturer og anbefalinger
 - [ ] Forslag vises

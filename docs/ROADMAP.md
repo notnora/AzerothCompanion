@@ -45,7 +45,7 @@ Status: fullført
 
 ## Fase 1: MVP-addon shell
 
-Status: pågår — grunnleggende UI og eksempelknapper er testet i WoW; reload, feilkontroll og lagring gjenstår
+Status: pågår — UI, spillerstatus, resize, reload, `/ac` og lagring av posisjon/størrelse er testet i WoW; soneoppdatering og teksttilpasning gjenstår
 
 ### Mål
 - Bygge et fungerende addon-vindu i WoW.
@@ -70,10 +70,16 @@ Status: pågår — grunnleggende UI og eksempelknapper er testet i WoW; reload,
 - [x] Vise navn, klasse, nivå, fraksjon og sone i spillerstatus
 - [x] Lagre vindusposisjon i SavedVariables
 - [x] Implementere resize-håndtak med størrelsesgrenser og lagring av vindusstørrelse
+- [x] Bekrefte i WoW at resize endrer vindusstørrelsen
 - [x] Lage lokalt deploy-skript og kopiere addon-filene til installert klientmappe
 - [x] Bekrefte i WoW at vinduet vises, kan åpnes/lukkes og flyttes
 - [x] Bekrefte i WoW at de to knappene viser ulike eksempeldata
-- [ ] Verifisere `/reload` og `scriptErrors`
+- [x] Bekrefte at resize fungerer innenfor min-/maksgrensene
+- [x] Bekrefte at vindusstørrelsen overlever `/reload`
+- [x] Bekrefte at vindusposisjonen overlever reload og relog
+- [x] Bekrefte at vindusstørrelsen overlever relog
+- [x] Ingen Lua-feil observert i siste in-game-test
+- [x] Bekrefte at `/reload` og `/ac` fungerer
 
 ### Akseptkriterier
 - Addonet lastes inn uten Lua-feil.
@@ -84,10 +90,9 @@ Status: pågår — grunnleggende UI og eksempelknapper er testet i WoW; reload,
 ### Status og neste kontroll
 - Deploy-skriptet er kjørt, og de deployede `.toc`- og Lua-filene er sammenlignet med kildefilene.
 - `BackdropTemplate`-rettelsen er bekreftet indirekte i klienten ved at vinduet nå vises og kan brukes.
-- Brukeren har bekreftet at vinduet vises, kan åpnes/lukkes og flyttes, og at begge knappene viser ulike eksempeldata.
-- Resize-håndtak, størrelsesgrenser og lagring/migrering av bredde og høyde er implementert og deployet, men ikke testet i spillet.
-- Gjenstår: aktiver `/console scriptErrors 1`, test `/reload` og `/ac`, og kontroller statusoppdatering samt vindusposisjon etter reload/relog.
-- Fraksjon er lagt til i spillerstatus; kontroller i WoW at verdien vises korrekt for karakteren.
+- Brukeren har bekreftet at vinduet vises, kan åpnes/lukkes og flyttes, at begge knappene viser ulike eksempeldata, og at resize endrer størrelsen.
+- Spillerstatus inkludert fraksjon vises, og ingen feillogg ble observert i siste test.
+- Gjenstår: teste soneoppdatering og teksttilpasning etter resize.
 
 ---
 

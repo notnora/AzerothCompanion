@@ -126,6 +126,11 @@ local function formatRecommendations(mode)
     return table.concat(lines, "\n")
 end
 
+local function keepFieldTogether(value)
+    local formattedValue = tostring(value):gsub(" ", UI.nonBreakingSpace)
+    return formattedValue
+end
+
 local function refreshPlayerInfo(frame)
     local context = getPlayerContext()
 
@@ -137,11 +142,11 @@ local function refreshPlayerInfo(frame)
         frame.playerText:SetText(
             string.format(
                 UI.playerLabelFormat,
-                context.playerName,
-                context.playerClass,
-                "Lvl " .. context.playerLevel,
-                context.playerFaction,
-                context.zone
+                keepFieldTogether(context.playerName),
+                keepFieldTogether(context.playerClass),
+                keepFieldTogether("Lvl " .. context.playerLevel),
+                keepFieldTogether(context.playerFaction),
+                keepFieldTogether(context.zone)
             )
         )
     end
@@ -216,6 +221,7 @@ local function buildFrame()
     frame.playerText = frame:CreateFontString(nil, DRAW_LAYERS.OVERLAY, FONT_OBJECTS.SMALL_HIGHLIGHT)
     frame.playerText:SetPoint(FRAME_POINTS.TOPLEFT, frame.titleText, FRAME_POINTS.BOTTOMLEFT, 0, -8)
     frame.playerText:SetJustifyH(TEXT_JUSTIFICATION.LEFT)
+    frame.playerText:SetWordWrap(true)
     frame.playerText:SetText(UI.loadingText)
 
     local currentButton = CreateFrame(FRAME_TYPES.BUTTON, nil, frame, FRAME_TEMPLATES.PANEL_BUTTON)
