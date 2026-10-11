@@ -35,7 +35,9 @@ Vi bruker WoW sine egne verktøy til å kontrollere om addon-en feiler eller log
 - Lokal deploy er kjørt mot Classic Era AddOns-mappen. `.toc`-filen og begge Lua-filene ble sammenlignet med de deployede kopiene.
 - Deploy-skriptet passerer `bash -n`, og editorens Lua-diagnostikk rapporterer ingen feil i hovedfilen eller konstantfilen.
 - Lokal kjøring med `lua`/`luac` er ikke tilgjengelig i utviklingsmiljøet.
-- In-game-test er fortsatt ikke bekreftet. En tidligere `SetBackdrop`-feil ble møtt med `BackdropTemplate`; endringen er deployet, men må verifiseres med `/reload`.
+- Brukeren har bekreftet i WoW at vinduet vises, kan åpnes/lukkes og flyttes, og at knappene viser ulike eksempeldata.
+- `BackdropTemplate`-rettelsen er dermed bekreftet for innlasting og visning av vinduet. Fraksjon er nå lagt til i spillerstatus, men verdien er ikke bekreftet i klienten ennå. `/reload`, `/console scriptErrors 1`, `/ac`, spillerstatus og SavedVariables er heller ikke rapportert testet.
+- Resize-håndtak med grenser, responsiv tekstbredde og lagring av størrelse er implementert og deployet; faktisk resizing og persistering må bekreftes i klienten.
 - Anbefalingene er statiske eksempeldata. De sjekker ikke ekte quest-tilgjengelighet, nivå eller om spilleren allerede er i foreslått sone.
 
 ---
@@ -96,12 +98,18 @@ Sjekke at UI-et faktisk er synlig og kan brukes.
 2. Se etter hovedvinduet.
 3. Prøv å flytte vinduet.
 4. Klikk X for å skjule vinduet, og bruk `/ac` for å åpne det igjen.
+5. Dra resize-håndtaket nederst til høyre for å endre størrelse.
 
 #### Verifisering
 - Vinduet er synlig.
 - Det kan flyttes eller posisjoneres uten at UI-et krasjer.
 - Tekst og knapper vises korrekt.
 - Lukkeknappen skjuler vinduet, og `/ac` viser det igjen.
+- Resize-håndtaket endrer størrelsen uten at vinduet flyttes.
+- Vinduet stopper ved definert minste- og største størrelse.
+- Teksten holder seg innenfor vinduet når det endres størrelse.
+
+Status: Delvis bekreftet i WoW: vinduet vises, kan åpnes/lukkes og flyttes. Åpning via `/ac` er ikke bekreftet særskilt.
 
 ### Test 3: Spillerstatus oppdateres riktig
 
@@ -110,7 +118,7 @@ Verifisere at vi leser riktig spillerstatus.
 
 #### Steg
 1. Gå inn i en sone.
-2. Se om addonet viser riktig nivå, klasse og sone.
+2. Se om addonet viser riktig nivå, klasse, fraksjon og sone.
 3. Endre sone eller logg ut/logg inn.
 
 #### Verifisering
@@ -131,6 +139,7 @@ Sjekke at addonet har de to brukskontekstene.
 #### Verifisering
 - Begge knapper/handlinger vises.
 - De er tydelige og lesbare i spillet.
+- Begge viser ulike eksempeldata. Bekreftet i WoW av brukeren.
 
 ### Test 5: Reload og relog fungerer
 
@@ -240,12 +249,12 @@ Sjekk:
 
 ### Fase 1: MVP
 - [ ] Addonet laster inn uten feil, inkludert lasting av konstantmodulen før hovedfilen
-- [ ] Vinduet vises og kan lukkes
-- [ ] Vinduet er flyttbart
-- [ ] Spillerstatus vises; kontroller også fraksjon når den er lagt til i UI-et
-- [ ] To handlinger vises
+- [x] Vinduet vises, kan lukkes og flyttes (bekreftet i WoW)
+- [ ] Spillerstatus vises korrekt, inkludert fraksjon
+- [x] To handlinger vises og gir ulike eksempeldata (bekreftet i WoW)
+- [ ] Resize-håndtaket endrer størrelse innenfor grensene, og innholdet tilpasser seg
 - [ ] `/ac` åpner et skjult vindu
-- [ ] Vindusposisjon overlever reload og relog
+- [ ] Vindusposisjon og størrelse overlever reload og relog
 - [ ] `/reload` fungerer
 - [ ] `/console scriptErrors 1` viser ingen kritiske feil
 

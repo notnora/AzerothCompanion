@@ -26,8 +26,8 @@ Se roadmap-dokumentet her:
 
 - Fase 0 er fullført.
 - Fase 1 pågår: addon-shell, UI, eksempelanbefalinger og lokal deploy er implementert.
-- Addonet er deployet lokalt, men lasting og oppførsel må fortsatt bekreftes i WoW.
-- Neste steg er å teste `/reload`, UI-et, lukkeknappen, `/ac` og SavedVariables i klienten.
+- I WoW er vinduet bekreftet synlig, åpne/lukke- og flyttbart; begge knappene viser ulike eksempeldata.
+- Neste steg er å bekrefte `/reload`, `scriptErrors`, `/ac`, at fraksjonen vises riktig, resize-håndtakets grenser, og at vindusposisjon og størrelse overlever reload/relog.
 - Fase 2 begynner etter at grunnleggende klienttesting er bestått; anbefalingene er foreløpig statiske eksempeldata, ikke ekte questdata.
 
 ## Lokal deploy

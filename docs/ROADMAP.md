@@ -45,7 +45,7 @@ Status: fullført
 
 ## Fase 1: MVP-addon shell
 
-Status: pågår — implementert lokalt, in-game-verifisering gjenstår
+Status: pågår — grunnleggende UI og eksempelknapper er testet i WoW; reload, feilkontroll og lagring gjenstår
 
 ### Mål
 - Bygge et fungerende addon-vindu i WoW.
@@ -67,9 +67,12 @@ Status: pågår — implementert lokalt, in-game-verifisering gjenstår
 - [x] Lage hovedframe og UI-layout, inkludert lukkeknapp
 - [x] Registrere nødvendige events
 - [x] Hente spillerstatus fra WoW API
-- [ ] Vise alle ønskede spillerdata; navn, klasse, nivå og sone vises, men fraksjon vises ikke ennå
+- [x] Vise navn, klasse, nivå, fraksjon og sone i spillerstatus
 - [x] Lagre vindusposisjon i SavedVariables
+- [x] Implementere resize-håndtak med størrelsesgrenser og lagring av vindusstørrelse
 - [x] Lage lokalt deploy-skript og kopiere addon-filene til installert klientmappe
+- [x] Bekrefte i WoW at vinduet vises, kan åpnes/lukkes og flyttes
+- [x] Bekrefte i WoW at de to knappene viser ulike eksempeldata
 - [ ] Verifisere `/reload` og `scriptErrors`
 
 ### Akseptkriterier
@@ -80,10 +83,11 @@ Status: pågår — implementert lokalt, in-game-verifisering gjenstår
 
 ### Status og neste kontroll
 - Deploy-skriptet er kjørt, og de deployede `.toc`- og Lua-filene er sammenlignet med kildefilene.
-- `BackdropTemplate` er lagt til etter en rapportert feil fra `SetBackdrop`; rettelsen er deployet, men ikke bekreftet i klienten ennå.
-- Test i WoW: aktiver `/console scriptErrors 1`, kjør `/reload`, kontroller at vinduet vises, flyttes og lukkes, og at `/ac` åpner det igjen.
-- Flytt vinduet, kjør `/reload` og relog for å kontrollere at posisjonen beholdes.
-- Visning av fraksjon må legges til før Fase 1 er helt ferdig.
+- `BackdropTemplate`-rettelsen er bekreftet indirekte i klienten ved at vinduet nå vises og kan brukes.
+- Brukeren har bekreftet at vinduet vises, kan åpnes/lukkes og flyttes, og at begge knappene viser ulike eksempeldata.
+- Resize-håndtak, størrelsesgrenser og lagring/migrering av bredde og høyde er implementert og deployet, men ikke testet i spillet.
+- Gjenstår: aktiver `/console scriptErrors 1`, test `/reload` og `/ac`, og kontroller statusoppdatering samt vindusposisjon etter reload/relog.
+- Fraksjon er lagt til i spillerstatus; kontroller i WoW at verdien vises korrekt for karakteren.
 
 ---
 

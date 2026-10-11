@@ -3,9 +3,11 @@ local constants = namespace.Constants
 local UI = constants.UI
 local FRAME_TYPES = constants.FRAME_TYPES
 local FRAME_TEMPLATES = constants.FRAME_TEMPLATES
+local UI_TEXTURES = constants.UI_TEXTURES
 local FRAME_POINTS = constants.FRAME_POINTS
 local DRAW_LAYERS = constants.DRAW_LAYERS
 local FONT_OBJECTS = constants.FONT_OBJECTS
+local TEXT_JUSTIFICATION = constants.TEXT_JUSTIFICATION
 local FRAME_SCRIPTS = constants.FRAME_SCRIPTS
 local MOUSE_BUTTONS = constants.MOUSE_BUTTONS
 local PLAYER_UNIT = constants.PLAYER_UNIT
@@ -23,6 +25,8 @@ local function getDefaultDatabase()
         window = {
             x = UI.defaultWindowX,
             y = UI.defaultWindowY,
+            width = UI.frameWidth,
+            height = UI.frameHeight,
         },
         dismissedZones = {},
         sampleData = true,
@@ -30,12 +34,20 @@ local function getDefaultDatabase()
 end
 
 local function ensureDatabase()
+    local defaultDatabase = getDefaultDatabase()
+
     if AzerothCompanionDB == nil then
-        AzerothCompanionDB = getDefaultDatabase()
+        AzerothCompanionDB = defaultDatabase
     else
-        for key, value in pairs(getDefaultDatabase()) do
+        for key, value in pairs(defaultDatabase) do
             if AzerothCompanionDB[key] == nil then
                 AzerothCompanionDB[key] = value
+            end
+        end
+
+        for key, value in pairs(defaultDatabase.window) do
+            if AzerothCompanionDB.window[key] == nil then
+                AzerothCompanionDB.window[key] = value
             end
         end
     end
@@ -128,15 +140,54 @@ local function refreshPlayerInfo(frame)
                 context.playerName,
                 context.playerClass,
                 "Lvl " .. context.playerLevel,
+                context.playerFaction,
                 context.zone
             )
         )
     end
 end
 
+local function updateContentWidths(frame)
+    local contentWidth = frame:GetWidth() - UI.contentHorizontalPadding
+
+    if frame.playerText then
+        frame.playerText:SetWidth(contentWidth)
+    end
+
+    if frame.recommendationText then
+        frame.recommendationText:SetWidth(contentWidth)
+    end
+end
+
+local function saveWindowState(frame)
+    local _, _, _, xOffset, yOffset = frame:GetPoint()
+    if xOffset ~= nil and yOffset ~= nil then
+        AzerothCompanionDB.window.x = xOffset
+        AzerothCompanionDB.window.y = yOffset
+    end
+    AzerothCompanionDB.window.width = frame:GetWidth()
+    AzerothCompanionDB.window.height = frame:GetHeight()
+end
+
+local function configureActionButton(button, label)
+    button:SetHeight(UI.buttonHeight)
+    button:SetText(label)
+
+    local fontString = button:GetFontString()
+    fontString:SetJustifyH(TEXT_JUSTIFICATION.CENTER)
+    button:SetWidth(fontString:GetStringWidth() + UI.buttonTextHorizontalPadding * 2)
+end
+
 local function buildFrame()
     local frame = CreateFrame(FRAME_TYPES.FRAME, UI.frameName, UIParent, FRAME_TEMPLATES.BACKDROP)
-    frame:SetSize(UI.frameWidth, UI.frameHeight)
+    frame:SetSize(AzerothCompanionDB.window.width, AzerothCompanionDB.window.height)
+    frame:SetResizable(true)
+    frame:SetResizeBounds(
+        UI.minimumFrameWidth,
+        UI.minimumFrameHeight,
+        UI.maximumFrameWidth,
+        UI.maximumFrameHeight
+    )
     frame:SetPoint(FRAME_POINTS.TOPLEFT, UIParent, FRAME_POINTS.TOPLEFT, AzerothCompanionDB.window.x, AzerothCompanionDB.window.y)
     frame:SetMovable(true)
     frame:EnableMouse(true)
@@ -164,21 +215,19 @@ local function buildFrame()
 
     frame.playerText = frame:CreateFontString(nil, DRAW_LAYERS.OVERLAY, FONT_OBJECTS.SMALL_HIGHLIGHT)
     frame.playerText:SetPoint(FRAME_POINTS.TOPLEFT, frame.titleText, FRAME_POINTS.BOTTOMLEFT, 0, -8)
-    frame.playerText:SetJustifyH("LEFT")
+    frame.playerText:SetJustifyH(TEXT_JUSTIFICATION.LEFT)
     frame.playerText:SetText(UI.loadingText)
 
     local currentButton = CreateFrame(FRAME_TYPES.BUTTON, nil, frame, FRAME_TEMPLATES.PANEL_BUTTON)
-    currentButton:SetSize(UI.buttonWidth, UI.buttonHeight)
+    configureActionButton(currentButton, UI.buttonCurrentText)
     currentButton:SetPoint(FRAME_POINTS.TOPLEFT, frame.playerText, FRAME_POINTS.BOTTOMLEFT, 0, -16)
-    currentButton:SetText(UI.buttonCurrentText)
     currentButton:SetScript(FRAME_SCRIPTS.ON_CLICK, function()
         frame.recommendationText:SetText(formatRecommendations(MODES.CURRENT))
     end)
 
     local moveOnButton = CreateFrame(FRAME_TYPES.BUTTON, nil, frame, FRAME_TEMPLATES.PANEL_BUTTON)
-    moveOnButton:SetSize(UI.buttonWidth, UI.buttonHeight)
-    moveOnButton:SetPoint(FRAME_POINTS.TOPLEFT, currentButton, FRAME_POINTS.TOPRIGHT, 12, 0)
-    moveOnButton:SetText(UI.buttonMoveOnText)
+    configureActionButton(moveOnButton, UI.buttonMoveOnText)
+    moveOnButton:SetPoint(FRAME_POINTS.TOPLEFT, currentButton, FRAME_POINTS.TOPRIGHT, UI.buttonGap, 0)
     moveOnButton:SetScript(FRAME_SCRIPTS.ON_CLICK, function()
         frame.recommendationText:SetText(formatRecommendations(MODES.MOVE_ON))
     end)
@@ -186,8 +235,28 @@ local function buildFrame()
     frame.recommendationText = frame:CreateFontString(nil, DRAW_LAYERS.OVERLAY, FONT_OBJECTS.HIGHLIGHT)
     frame.recommendationText:SetPoint(FRAME_POINTS.TOPLEFT, currentButton, FRAME_POINTS.BOTTOMLEFT, 0, -18)
     frame.recommendationText:SetJustifyH("LEFT")
-    frame.recommendationText:SetWidth(320)
     frame.recommendationText:SetText(UI.emptyRecommendationText)
+
+    frame:SetScript(FRAME_SCRIPTS.ON_SIZE_CHANGED, updateContentWidths)
+    updateContentWidths(frame)
+
+    local resizeButton = CreateFrame(FRAME_TYPES.BUTTON, nil, frame)
+    resizeButton:SetSize(UI.resizeButtonSize, UI.resizeButtonSize)
+    resizeButton:SetPoint(FRAME_POINTS.BOTTOMRIGHT, frame, FRAME_POINTS.BOTTOMRIGHT, -4, 4)
+    resizeButton:SetNormalTexture(UI_TEXTURES.RESIZE_NORMAL)
+    resizeButton:SetHighlightTexture(UI_TEXTURES.RESIZE_HIGHLIGHT)
+    resizeButton:SetPushedTexture(UI_TEXTURES.RESIZE_PRESSED)
+    resizeButton:SetScript(FRAME_SCRIPTS.ON_MOUSE_DOWN, function(_, button)
+        if button == MOUSE_BUTTONS.LEFT then
+            frame:StartSizing(FRAME_POINTS.BOTTOMRIGHT)
+        end
+    end)
+    resizeButton:SetScript(FRAME_SCRIPTS.ON_MOUSE_UP, function(_, button)
+        if button == MOUSE_BUTTONS.LEFT then
+            frame:StopMovingOrSizing()
+            saveWindowState(frame)
+        end
+    end)
 
     frame:SetScript(FRAME_SCRIPTS.ON_MOUSE_DOWN, function(_, button)
         if button == MOUSE_BUTTONS.LEFT then
@@ -198,16 +267,12 @@ local function buildFrame()
     frame:SetScript(FRAME_SCRIPTS.ON_MOUSE_UP, function(_, button)
         if button == MOUSE_BUTTONS.LEFT then
             frame:StopMovingOrSizing()
-            local point, relativeTo, relativePoint, xOfs, yOfs = frame:GetPoint()
-            AzerothCompanionDB.window.x = xOfs
-            AzerothCompanionDB.window.y = yOfs
+            saveWindowState(frame)
         end
     end)
 
     frame:SetScript(FRAME_SCRIPTS.ON_HIDE, function()
-        local point, relativeTo, relativePoint, xOfs, yOfs = frame:GetPoint()
-        AzerothCompanionDB.window.x = xOfs
-        AzerothCompanionDB.window.y = yOfs
+        saveWindowState(frame)
     end)
 
     refreshPlayerInfo(frame)
