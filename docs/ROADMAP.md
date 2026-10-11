@@ -126,7 +126,7 @@ Status: pågår — strukturert fiktivt quest-fixture og filtreringsmodul er imp
 - Enkel rangering av forslag
 
 ### Sjekkliste
-- [x] Definere datastruktur med nivå, fraksjon, status, forutsetninger, story, hub og quest-item-dropstatus
+- [x] Definere datastruktur med nivå, fraksjon, status, forutsetninger, story, hub, quest-item-dropstatus og valgfri questlineposisjon (`x/y`)
 - [x] Lage eksplisitt fiktive eksempelquester i en egen fixture-fil
 - [x] Filtrere fixtures etter nivå, fraksjon, tilgjengelighet, forutsetninger og modus/sone
 - [x] Vise om fixture-item kan droppe før aksept, krever aksept eller har ukjent status

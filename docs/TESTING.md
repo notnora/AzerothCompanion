@@ -252,10 +252,14 @@ Kontrollere fixture-filteret og vise begrensningene tydelig.
 4. Sammenlign story, hub og begrunnelser; kontroller også at forslagene passer nivå og fraksjon.
 5. Se etter item-meldinger for før aksept, etter aksept og ukjent status.
 6. Kontroller at fullførte, låste og ukjente fixtureposter ikke vises.
+7. Kontroller at fixtures med kjent questline-plassering viser `Questlinje: x/y`, mens fixtures uten slik metadata ikke får en oppdiktet plassering.
+8. Gjør vinduet lavt, scroll nedover i forslagene, og se at hvert forslag har egen parchment-bakgrunn med tydelig skilt tittel, sone, story/hub, begrunnelse og item-status.
 
 #### Verifisering
 - Forslagene bruker strukturert fixture-data, ikke den virkelige questloggen.
 - Quest-item-teksten skiller mellom før aksept, etter aksept og ukjent.
+- Questline-plassering vises bare når både stegnummer og totalt antall steg finnes og er gyldige.
+- Hvert questforslag er visuelt separat, parchment-bakgrunnen dekker kortet, og scrolling viser hele kortinnholdet.
 - Ingen fixture eller dropstatus framstilles som verifiserte spilldata.
 
 ---

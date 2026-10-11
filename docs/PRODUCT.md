@@ -21,7 +21,7 @@ Forutse nyttig trening for klasse og profesjon ved å bruke karakternivå, klass
 Kvalitativ prioritet: (1) sammenhengende historier, (2) minimal meningsløs tilbakevandring, (3) nivåpassende og XP, (4) tetthet av tilgjengelige quests, (5) naturlig hub-progresjon, (6) nyttige kombinerte errands. Langdistanse er ikke i seg selv dårlig. Anbefalinger må være transparente og overstyrbare.
 
 ## Datakrav
-Quest-ID, påkrevd/anbefalt nivå, fraksjon, forutsetninger, fullføringsstatus, kjedekoblinger, oppstartsmål-/innleveringslokasjoner, historiegruppering, hub-gruppering og XP der det er pålitelig. Trenerdata trenger klassen/profesjonstilpasning, tilbudt trening, forutsetninger og lokasjon. Ukjente data må representeres eksplisitt; aldri gjett.
+Quest-ID, påkrevd/anbefalt nivå, fraksjon, forutsetninger, fullføringsstatus, kjedekoblinger, oppstartsmål-/innleveringslokasjoner, historiegruppering, hub-gruppering og XP der det er pålitelig. Når plasseringen i en questline er kjent, inkluder stegnummer og totalt antall steg (`x/y`); begge feltene er valgfrie og må ikke gjettes. Trenerdata trenger klassen/profesjonstilpasning, tilbudt trening, forutsetninger og lokasjon. Ukjente data må representeres eksplisitt; aldri gjett.
 
 For quest-items skal data kunne si om itemet kan droppe før questen aksepteres, først etter aksept, eller om dette er ukjent. Ikke oppgi drop-rate eller behandle fixtureverdier som spillfakta uten en verifisert kilde.
 

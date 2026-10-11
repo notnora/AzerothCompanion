@@ -213,7 +213,7 @@ local function stopCoordinateUpdates()
     end
 end
 
-local function formatRecommendations(mode)
+local function getRecommendationsForMode(mode)
     local playerContext = getPlayerContext()
     local recommendationContext = {
         level = playerContext.playerLevel,
@@ -222,7 +222,7 @@ local function formatRecommendations(mode)
         completedQuestIds = {},
     }
 
-    return Recommendations.formatRecommendations(questFixtures, recommendationContext, mode)
+    return Recommendations.getRecommendations(questFixtures, recommendationContext, mode)
 end
 
 local function keepFieldTogether(value)
@@ -260,14 +260,140 @@ local function updateContentWidths(frame)
         frame.playerText:SetWidth(contentWidth)
     end
 
-    if frame.recommendationText then
+    if frame.recommendationScrollFrame then
         updateRecommendationContent(frame)
     end
 end
 
+local function setQuestCardText(fontString, text, width, color)
+    if not text then
+        fontString:Hide()
+        return 0
+    end
+
+    fontString:ClearAllPoints()
+    fontString:SetWidth(math.max(1, width))
+    fontString:SetHeight(UI.questCardTextMeasurementHeight)
+    fontString:SetWordWrap(true)
+    fontString:SetText(text)
+    fontString:SetTextColor(color.r, color.g, color.b, color.a)
+
+    local lineHeight = fontString:GetLineHeight()
+    local textHeight = math.max(lineHeight, fontString:GetNumLines() * lineHeight)
+    fontString:SetHeight(textHeight)
+    fontString:Show()
+    return textHeight
+end
+
+local function createQuestFontString(parent, fontReference, fontScale)
+    local fontString = parent:CreateFontString(nil, DRAW_LAYERS.OVERLAY)
+    local fontPath, fontHeight, fontFlags = fontReference:GetFont()
+    fontString:SetFont(
+        fontPath or UI.fallbackFontPath,
+        (fontHeight or UI.fallbackFontHeight) * fontScale,
+        fontFlags or UI.fallbackFontFlags
+    )
+    return fontString
+end
+
+local function createQuestCard(parent, fontReference)
+    local card = CreateFrame(FRAME_TYPES.FRAME, nil, parent, FRAME_TEMPLATES.BACKDROP)
+    card:SetBackdrop({
+        bgFile = UI_TEXTURES.PANEL_BACKGROUND,
+        edgeFile = UI_TEXTURES.PANEL_BORDER,
+        tile = true,
+        tileSize = UI.questCardTileSize,
+        edgeSize = UI.questCardEdgeSize,
+        insets = {
+            left = UI.questCardBackdropInset,
+            right = UI.questCardBackdropInset,
+            top = UI.questCardBackdropInset,
+            bottom = UI.questCardBackdropInset,
+        },
+    })
+    card:SetBackdropColor(
+        UI.questCardBackgroundColor.r,
+        UI.questCardBackgroundColor.g,
+        UI.questCardBackgroundColor.b,
+        UI.questCardBackgroundColor.a
+    )
+    card:SetBackdropBorderColor(
+        UI.questCardBorderColor.r,
+        UI.questCardBorderColor.g,
+        UI.questCardBorderColor.b,
+        UI.questCardBorderColor.a
+    )
+
+    card.titleText = createQuestFontString(card, fontReference, UI.questCardTitleFontScale)
+    card.divider = card:CreateTexture(nil, DRAW_LAYERS.OVERLAY)
+    card.divider:SetTexture(UI_TEXTURES.QUEST_DIVIDER)
+    card.zoneText = createQuestFontString(card, fontReference, UI.questCardMetadataFontScale)
+    card.storyText = createQuestFontString(card, fontReference, UI.questCardMetadataFontScale)
+    card.hubText = createQuestFontString(card, fontReference, UI.questCardMetadataFontScale)
+    card.questLineText = createQuestFontString(card, fontReference, UI.questCardMetadataFontScale)
+    card.reasonText = createQuestFontString(card, fontReference, UI.questCardBodyFontScale)
+    card.itemText = createQuestFontString(card, fontReference, UI.questCardMetadataFontScale)
+
+    return card
+end
+
+local function layoutQuestCard(card, quest, cardWidth)
+    local textWidth = cardWidth - UI.questCardPadding * 2
+    local yOffset = -UI.questCardPadding
+
+    local function addText(fontString, text, color)
+        local textHeight = setQuestCardText(fontString, text, textWidth, color)
+        if textHeight > 0 then
+            fontString:SetPoint(FRAME_POINTS.TOPLEFT, card, FRAME_POINTS.TOPLEFT, UI.questCardPadding, yOffset)
+            yOffset = yOffset - textHeight - UI.questCardSectionGap
+        end
+    end
+
+    addText(card.titleText, quest.title, UI.questCardTitleColor)
+
+    card.divider:ClearAllPoints()
+    card.divider:SetSize(textWidth, UI.questCardDividerHeight)
+    card.divider:SetPoint(FRAME_POINTS.TOPLEFT, card, FRAME_POINTS.TOPLEFT, UI.questCardPadding, yOffset)
+    card.divider:Show()
+    yOffset = yOffset - UI.questCardDividerHeight - UI.questCardSectionGap
+
+    addText(card.zoneText, string.format(UI.questCardZoneFormat, quest.zone), UI.questCardMetadataColor)
+    addText(card.storyText, string.format(UI.questCardStoryFormat, quest.storyGroup), UI.questCardMetadataColor)
+    addText(card.hubText, string.format(UI.questCardHubFormat, quest.hub), UI.questCardMetadataColor)
+
+    local questLineText
+    local questLineStep = quest.questLineStep
+    local questLineLength = quest.questLineLength
+    if type(questLineStep) == "number"
+        and type(questLineLength) == "number"
+        and questLineStep >= 1
+        and questLineStep <= questLineLength
+        and type(UI.questLinePositionFormat) == "string"
+    then
+        questLineText = string.format(UI.questLinePositionFormat, questLineStep, questLineLength)
+    end
+    addText(card.questLineText, questLineText, UI.questCardMetadataColor)
+
+    addText(card.reasonText, quest.reason, UI.questCardBodyColor)
+
+    local itemText
+    if quest.questItem then
+        itemText = string.format(
+            UI.questCardItemFormat,
+            quest.questItem.name,
+            Recommendations.getItemDropAvailabilityText(quest.questItem)
+        )
+    end
+    addText(card.itemText, itemText, UI.questCardItemColor)
+
+    local cardHeight = math.max(UI.questCardMinimumHeight, -yOffset + UI.questCardPadding)
+    card:SetHeight(cardHeight)
+    return cardHeight
+end
+
 updateRecommendationContent = function(frame)
     local scrollFrame = frame.recommendationScrollFrame
-    if not scrollFrame or not frame.recommendationContent or not frame.recommendationText then
+    if not scrollFrame or not frame.recommendationContent then
         return
     end
 
@@ -278,13 +404,61 @@ updateRecommendationContent = function(frame)
     end
 
     frame.recommendationContent:SetWidth(viewportWidth)
-    frame.recommendationText:SetWidth(math.max(1, viewportWidth - UI.recommendationTextPadding))
-    frame.recommendationText:SetHeight(UI.recommendationTextMeasurementHeight)
-    local lineCount = math.max(1, frame.recommendationText:GetNumLines())
-    local lineHeight = frame.recommendationText:GetLineHeight()
-    local textHeight = lineCount * lineHeight + UI.recommendationTextVerticalPadding
-    frame.recommendationText:SetHeight(textHeight)
-    frame.recommendationContent:SetHeight(math.max(viewportHeight, textHeight))
+    local contentHeight = UI.questCardListPadding
+    local recommendations = frame.currentRecommendations or {}
+
+    if #recommendations == 0 then
+        local emptyText = frame.emptyRecommendationText
+        emptyText:ClearAllPoints()
+        emptyText:SetPoint(
+            FRAME_POINTS.TOPLEFT,
+            frame.recommendationContent,
+            FRAME_POINTS.TOPLEFT,
+            UI.questCardListPadding,
+            -UI.questCardListPadding
+        )
+        emptyText:SetWidth(math.max(1, viewportWidth - UI.questCardListPadding * 2))
+        emptyText:SetHeight(UI.questCardTextMeasurementHeight)
+        emptyText:SetWordWrap(true)
+        local emptyHeight = math.max(1, emptyText:GetNumLines()) * emptyText:GetLineHeight()
+        emptyText:SetHeight(emptyHeight)
+        emptyText:Show()
+        contentHeight = contentHeight + emptyHeight + UI.questCardListPadding
+    else
+        frame.emptyRecommendationText:Hide()
+        local cardWidth = math.max(
+            1,
+            viewportWidth - UI.questCardScrollBarPadding - UI.questCardListPadding * 2
+        )
+        local visibleCount = math.min(#recommendations, UI.maximumVisibleRecommendations)
+
+        for index = 1, visibleCount do
+            local card = frame.recommendationCards[index]
+            if not card then
+                card = createQuestCard(frame.recommendationContent, frame.playerText)
+                frame.recommendationCards[index] = card
+            end
+
+            card:ClearAllPoints()
+            card:SetWidth(cardWidth)
+            local cardHeight = layoutQuestCard(card, recommendations[index], cardWidth)
+            card:SetPoint(
+                FRAME_POINTS.TOPLEFT,
+                frame.recommendationContent,
+                FRAME_POINTS.TOPLEFT,
+                UI.questCardListPadding,
+                -contentHeight
+            )
+            card:Show()
+            contentHeight = contentHeight + cardHeight + UI.questCardGap
+        end
+
+        for index = visibleCount + 1, #frame.recommendationCards do
+            frame.recommendationCards[index]:Hide()
+        end
+    end
+
+    frame.recommendationContent:SetHeight(math.max(viewportHeight, contentHeight))
     scrollFrame:UpdateScrollChildRect()
 
     local scrollRange = scrollFrame:GetVerticalScrollRange()
@@ -294,8 +468,10 @@ updateRecommendationContent = function(frame)
 end
 
 local function setRecommendationText(frame, mode)
-    frame.recommendationText:SetHeight(UI.recommendationTextMeasurementHeight)
-    frame.recommendationText:SetText(formatRecommendations(mode))
+    frame.currentRecommendations = getRecommendationsForMode(mode)
+    frame.emptyRecommendationText:SetText(
+        #frame.currentRecommendations == 0 and UI.noMatchingFixtureText or ""
+    )
     updateRecommendationContent(frame)
     frame.recommendationScrollFrame:SetVerticalScroll(0)
 end
@@ -405,11 +581,16 @@ local function buildFrame()
     frame.recommendationContent:SetSize(UI.frameWidth, UI.recommendationTextMeasurementHeight)
     recommendationScrollFrame:SetScrollChild(frame.recommendationContent)
 
-    frame.recommendationText = frame.recommendationContent:CreateFontString(nil, DRAW_LAYERS.OVERLAY, FONT_OBJECTS.HIGHLIGHT)
-    frame.recommendationText:SetPoint(FRAME_POINTS.TOPLEFT, frame.recommendationContent, FRAME_POINTS.TOPLEFT)
-    frame.recommendationText:SetJustifyH("LEFT")
-    frame.recommendationText:SetWordWrap(true)
-    frame.recommendationText:SetText(UI.emptyRecommendationText)
+    frame.recommendationCards = {}
+    frame.currentRecommendations = {}
+    frame.emptyRecommendationText = createQuestFontString(
+        frame.recommendationContent,
+        frame.playerText,
+        UI.questCardBodyFontScale
+    )
+    frame.emptyRecommendationText:SetJustifyH(TEXT_JUSTIFICATION.LEFT)
+    frame.emptyRecommendationText:SetWordWrap(true)
+    frame.emptyRecommendationText:SetText(UI.emptyRecommendationText)
 
     recommendationScrollFrame:SetScript(FRAME_SCRIPTS.ON_SIZE_CHANGED, function()
         updateRecommendationContent(frame)

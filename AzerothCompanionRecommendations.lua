@@ -121,6 +121,16 @@ local function formatRecommendations(questFixtures, playerContext, mode)
         table.insert(lines, string.format("%d. %s (%s) - %s", index, quest.title, quest.zone, quest.reason))
         table.insert(lines, string.format("   Story: %s | Hub: %s", quest.storyGroup, quest.hub))
 
+        local questLineStep = quest.questLineStep
+        local questLineLength = quest.questLineLength
+        if type(questLineStep) == "number"
+            and type(questLineLength) == "number"
+            and questLineStep >= 1
+            and questLineStep <= questLineLength
+        then
+            table.insert(lines, string.format(UI.questLinePositionFormat, questLineStep, questLineLength))
+        end
+
         if quest.questItem then
             table.insert(lines, string.format(
                 "   Quest item %s: %s",
@@ -136,4 +146,5 @@ end
 namespace.Recommendations = {
     getRecommendations = getRecommendations,
     formatRecommendations = formatRecommendations,
+    getItemDropAvailabilityText = formatItemDropAvailability,
 }
