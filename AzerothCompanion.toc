@@ -1,0 +1,9 @@
+## Interface: 11509
+## Title: Azeroth Companion
+## Notes: Story-first quest guidance for Season of Discovery.
+## Author: Azeroth Companion Project
+## Version: 0.1.0
+## SavedVariables: AzerothCompanionDB
+
+AzerothCompanionConstants.lua
+AzerothCompanion.lua

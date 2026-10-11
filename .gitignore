@@ -1,0 +1,17 @@
+# macOS metadata
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Local editor configuration and swap files
+.localenvs
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# WoW client state and logs
+**/WTF/
+**/SavedVariables/
+*.log
