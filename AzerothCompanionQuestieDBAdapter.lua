@@ -55,6 +55,111 @@ local function normalizeQuestIDs(value)
     return questIDs
 end
 
+local function normalizeEntityIDs(value)
+    if type(value) ~= "table" then
+        return {}
+    end
+
+    local entityIDs = {}
+    for _, entityID in ipairs(value) do
+        if type(entityID) == "number" and entityID > 0 then
+            table.insert(entityIDs, entityID)
+        end
+    end
+    return entityIDs
+end
+
+local function getAreaName(areaID)
+    local mapAPI = _G.C_Map
+    if type(areaID) ~= "number" or not mapAPI or type(mapAPI.GetAreaInfo) ~= "function" then
+        return nil
+    end
+
+    local success, areaName = pcall(mapAPI.GetAreaInfo, areaID)
+    if success and type(areaName) == "string" and areaName ~= "" then
+        return areaName
+    end
+    return nil
+end
+
+local function getTurnInLocations(questID)
+    if type(questID) ~= "number" or questID < 1 or questID % 1 ~= 0 then
+        return {}
+    end
+
+    local questDatabase, reason, detail = getProvider()
+    if not questDatabase then
+        return nil, reason, detail
+    end
+
+    local provider = _G.LibQuestieDB
+    local npcDatabase = provider and provider.Npc
+    if type(npcDatabase) ~= "table" then
+        return nil, "api_unavailable"
+    end
+
+    local finishers = readField(questDatabase, "finishedBy", questID)
+    local npcIDs = type(finishers) == "table" and normalizeEntityIDs(finishers[1]) or {}
+    local locations = {}
+    local seenLocations = {}
+
+    for _, npcID in ipairs(npcIDs) do
+        local npcName = readField(npcDatabase, "name", npcID)
+        local zoneID = readField(npcDatabase, "zoneID", npcID)
+        local zoneName = getAreaName(zoneID)
+        local spawnAreas = readField(npcDatabase, "spawns", npcID)
+        local areaIDs = {}
+
+        if type(spawnAreas) == "table" then
+            for areaID in pairs(spawnAreas) do
+                if type(areaID) == "number" and areaID > 0 then
+                    table.insert(areaIDs, areaID)
+                end
+            end
+            table.sort(areaIDs)
+        end
+
+        if #areaIDs == 0 and type(zoneID) == "number" then
+            areaIDs[1] = zoneID
+        end
+
+        for _, areaID in ipairs(areaIDs) do
+            local areaName = getAreaName(areaID)
+            local locationParts = {}
+            local subzoneName
+
+            if zoneName then
+                table.insert(locationParts, zoneName)
+            elseif areaName then
+                table.insert(locationParts, areaName)
+            end
+
+            if areaName and areaID ~= zoneID and areaName ~= zoneName then
+                subzoneName = areaName
+                table.insert(locationParts, areaName)
+            end
+
+            if type(npcName) == "string" and npcName ~= "" then
+                table.insert(locationParts, npcName)
+            end
+
+            if #locationParts > 0 then
+                local location = table.concat(locationParts, " - ")
+                if not seenLocations[location] then
+                    seenLocations[location] = true
+                    table.insert(locations, {
+                        text = location,
+                        zone = zoneName,
+                        subzone = subzoneName,
+                    })
+                end
+            end
+        end
+    end
+
+    return locations
+end
+
 local function getStatus()
     local questDatabase, reason, detail = getProvider()
     if not questDatabase then
@@ -115,4 +220,5 @@ end
 namespace.QuestieDBAdapter = {
     getStatus = getStatus,
     getQuest = getQuest,
+    getTurnInLocations = getTurnInLocations,
 }
