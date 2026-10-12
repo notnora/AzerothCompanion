@@ -291,9 +291,15 @@ local function getIncompleteObjectiveProgress(questID)
                     objective.numRequired,
                     objectiveText ~= "" and " " .. objectiveText or ""
                 )
-                table.insert(progress, progressText)
+                table.insert(progress, {
+                    label = objectiveText,
+                    text = progressText,
+                })
             elseif objectiveText ~= "" then
-                table.insert(progress, objectiveText)
+                table.insert(progress, {
+                    label = objectiveText,
+                    text = objectiveText,
+                })
             end
         end
     end
@@ -304,6 +310,7 @@ end
 local function getQuestProximity(quest, playerZone, playerSubzone)
     local locations = quest.turnInLocations or {}
     local nearestRank = QUEST_PROXIMITY.UNKNOWN
+    local nearestLocation
 
     for _, location in ipairs(locations) do
         local rank = QUEST_PROXIMITY.OTHER_ZONE
@@ -319,16 +326,19 @@ local function getQuestProximity(quest, playerZone, playerSubzone)
             rank = QUEST_PROXIMITY.UNKNOWN
         end
 
-        nearestRank = math.min(nearestRank, rank)
+        if rank < nearestRank then
+            nearestRank = rank
+            nearestLocation = location
+        end
     end
 
-    return nearestRank
+    return nearestRank, nearestLocation
 end
 
 local function sortActiveQuests(quests, playerZone, playerSubzone)
     for _, quest in ipairs(quests) do
         quest.turnInLocations = quest.questID and QuestieDBAdapter.getTurnInLocations(quest.questID) or {}
-        quest.proximityRank = getQuestProximity(quest, playerZone, playerSubzone)
+        quest.proximityRank, quest.nearestTurnInLocation = getQuestProximity(quest, playerZone, playerSubzone)
     end
 
     table.sort(quests, function(left, right)
@@ -340,6 +350,101 @@ local function sortActiveQuests(quests, playerZone, playerSubzone)
         end
         return left.questLogIndex < right.questLogIndex
     end)
+end
+
+local function buildQuestActions(quests)
+    local actions = {}
+    local turnInGroups = {}
+    local objectiveGroups = {}
+    local fallbackObjective
+
+    for _, quest in ipairs(quests or {}) do
+        if quest.isReady then
+            local location = quest.nearestTurnInLocation
+            if location and type(location.text) == "string" then
+                local group = turnInGroups[location.text]
+                if not group then
+                    group = {
+                        text = location.text,
+                        count = 0,
+                        proximityRank = quest.proximityRank,
+                    }
+                    turnInGroups[location.text] = group
+                end
+                group.count = group.count + 1
+                group.proximityRank = math.min(group.proximityRank, quest.proximityRank)
+            end
+        else
+            local objectives = getIncompleteObjectiveProgress(quest.questID)
+            for _, objective in ipairs(objectives) do
+                local key = objective.label:lower()
+                local group = objectiveGroups[key]
+                if not group then
+                    group = {
+                        label = objective.label,
+                        questIDs = {},
+                        count = 0,
+                    }
+                    objectiveGroups[key] = group
+                end
+
+                local questKey = quest.questID or quest.questLogIndex
+                if not group.questIDs[questKey] then
+                    group.questIDs[questKey] = true
+                    group.count = group.count + 1
+                end
+
+                if not fallbackObjective then
+                    fallbackObjective = {
+                        quest = quest,
+                        progress = objective.text,
+                    }
+                end
+            end
+        end
+    end
+
+    local turnInList = {}
+    for _, group in pairs(turnInGroups) do
+        table.insert(turnInList, group)
+    end
+    table.sort(turnInList, function(left, right)
+        if left.proximityRank ~= right.proximityRank then
+            return left.proximityRank < right.proximityRank
+        end
+        return left.text < right.text
+    end)
+
+    for index = 1, math.min(#turnInList, 2) do
+        local group = turnInList[index]
+        actions[#actions + 1] = string.format(UI.statusActionTurnInFormat, group.count, group.text)
+    end
+
+    local sharedObjectiveList = {}
+    for _, group in pairs(objectiveGroups) do
+        if group.count > 1 then
+            table.insert(sharedObjectiveList, group)
+        end
+    end
+    table.sort(sharedObjectiveList, function(left, right)
+        if left.count ~= right.count then
+            return left.count > right.count
+        end
+        return left.label < right.label
+    end)
+
+    if #sharedObjectiveList > 0 and #actions < 3 then
+        local group = sharedObjectiveList[1]
+        actions[#actions + 1] = string.format(UI.statusActionSharedObjectiveFormat, group.count, group.label)
+    elseif fallbackObjective and #actions < 3 then
+        actions[#actions + 1] = string.format(
+            UI.statusActionContinueQuestFormat,
+            fallbackObjective.quest.title,
+            fallbackObjective.progress
+        )
+    end
+
+    return actions
 end
 
 local function keepFieldTogether(value)
@@ -388,8 +493,6 @@ end
 
 local function renderStatusCard(frame)
     local context = getPlayerContext()
-    local currentRecommendations = getRecommendationsForMode(MODES.CURRENT)
-    local moveOnRecommendations = getRecommendationsForMode(MODES.MOVE_ON)
     local activeQuests = getActiveQuestLog()
     if activeQuests then
         local playerSubzone = type(_G.GetSubZoneText) == "function" and _G.GetSubZoneText() or ""
@@ -442,11 +545,15 @@ local function renderStatusCard(frame)
                 questLine = UI.statusQuestIncompleteColorEscape .. questLine
                 local objectiveProgress = getIncompleteObjectiveProgress(quest.questID)
                 if #objectiveProgress > 0 then
+                    local progressTexts = {}
+                    for _, objective in ipairs(objectiveProgress) do
+                        progressTexts[#progressTexts + 1] = objective.text
+                    end
                     questLine = questLine
                         .. " "
                         .. UI.statusQuestSecondaryColorEscape
                         .. "("
-                        .. table.concat(objectiveProgress, "; ")
+                        .. table.concat(progressTexts, "; ")
                         .. ")"
                 end
                     questLine = questLine .. UI.statusQuestColorReset
@@ -461,16 +568,9 @@ local function renderStatusCard(frame)
             toggleText = UI.statusQuestCollapseText
         end
     end
-    local nextLines = {}
-    if #currentRecommendations > 0 then
-        nextLines[#nextLines + 1] = UI.statusExampleRecommendationPrefix .. currentRecommendations[1].title
-    end
-    if #moveOnRecommendations > 0 then
-        local nextQuest = moveOnRecommendations[1]
-        nextLines[#nextLines + 1] = string.format("%s%s • %s", UI.statusExampleNextHubPrefix, nextQuest.hub, nextQuest.zone)
-    end
+    local nextLines = buildQuestActions(activeQuests)
     if #nextLines == 0 then
-        nextLines[1] = "Ingen eksempelanbefalinger tilgjengelig her."
+        nextLines[1] = UI.statusActionNoNextStep
     end
     local nextText = table.concat(nextLines, "\n")
 
